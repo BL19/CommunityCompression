@@ -14,3 +14,6 @@ NONE
 
 ## Implemented languages
 NONE
+
+## Contact
+Discord: https://discord.gg/bTzFjrn
