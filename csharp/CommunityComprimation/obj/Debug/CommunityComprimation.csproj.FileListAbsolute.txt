@@ -1,0 +1,6 @@
+C:\Users\eg0024\source\repos\CommunityComprimation\CommunityComprimation\bin\Debug\CommunityComprimation.dll
+C:\Users\eg0024\source\repos\CommunityComprimation\CommunityComprimation\bin\Debug\CommunityComprimation.pdb
+C:\Users\eg0024\source\repos\CommunityComprimation\CommunityComprimation\obj\Debug\CommunityComprimation.csprojResolveAssemblyReference.cache
+C:\Users\eg0024\source\repos\CommunityComprimation\CommunityComprimation\obj\Debug\CommunityComprimation.csproj.CoreCompileInputs.cache
+C:\Users\eg0024\source\repos\CommunityComprimation\CommunityComprimation\obj\Debug\CommunityComprimation.dll
+C:\Users\eg0024\source\repos\CommunityComprimation\CommunityComprimation\obj\Debug\CommunityComprimation.pdb

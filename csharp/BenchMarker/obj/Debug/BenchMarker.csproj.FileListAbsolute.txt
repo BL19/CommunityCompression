@@ -1,0 +1,9 @@
+C:\Users\eg0024\source\repos\CommunityComprimation\BenchMarker\bin\Debug\BenchMarker.exe.config
+C:\Users\eg0024\source\repos\CommunityComprimation\BenchMarker\bin\Debug\BenchMarker.exe
+C:\Users\eg0024\source\repos\CommunityComprimation\BenchMarker\bin\Debug\BenchMarker.pdb
+C:\Users\eg0024\source\repos\CommunityComprimation\BenchMarker\bin\Debug\CommunityComprimation.dll
+C:\Users\eg0024\source\repos\CommunityComprimation\BenchMarker\bin\Debug\CommunityComprimation.pdb
+C:\Users\eg0024\source\repos\CommunityComprimation\BenchMarker\obj\Debug\BenchMarker.csprojResolveAssemblyReference.cache
+C:\Users\eg0024\source\repos\CommunityComprimation\BenchMarker\obj\Debug\BenchMarker.csproj.CoreCompileInputs.cache
+C:\Users\eg0024\source\repos\CommunityComprimation\BenchMarker\obj\Debug\BenchMarker.exe
+C:\Users\eg0024\source\repos\CommunityComprimation\BenchMarker\obj\Debug\BenchMarker.pdb
