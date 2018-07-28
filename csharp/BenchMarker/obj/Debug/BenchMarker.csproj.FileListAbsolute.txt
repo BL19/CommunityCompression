@@ -7,3 +7,12 @@ C:\Users\eg0024\source\repos\CommunityComprimation\BenchMarker\obj\Debug\BenchMa
 C:\Users\eg0024\source\repos\CommunityComprimation\BenchMarker\obj\Debug\BenchMarker.csproj.CoreCompileInputs.cache
 C:\Users\eg0024\source\repos\CommunityComprimation\BenchMarker\obj\Debug\BenchMarker.exe
 C:\Users\eg0024\source\repos\CommunityComprimation\BenchMarker\obj\Debug\BenchMarker.pdb
+B:\DEV\CommunityCompression\source\csharp\BenchMarker\bin\Debug\BenchMarker.exe.config
+B:\DEV\CommunityCompression\source\csharp\BenchMarker\bin\Debug\BenchMarker.exe
+B:\DEV\CommunityCompression\source\csharp\BenchMarker\bin\Debug\BenchMarker.pdb
+B:\DEV\CommunityCompression\source\csharp\BenchMarker\bin\Debug\CommunityComprimation.dll
+B:\DEV\CommunityCompression\source\csharp\BenchMarker\bin\Debug\CommunityComprimation.pdb
+B:\DEV\CommunityCompression\source\csharp\BenchMarker\obj\Debug\BenchMarker.csprojResolveAssemblyReference.cache
+B:\DEV\CommunityCompression\source\csharp\BenchMarker\obj\Debug\BenchMarker.csproj.CoreCompileInputs.cache
+B:\DEV\CommunityCompression\source\csharp\BenchMarker\obj\Debug\BenchMarker.exe
+B:\DEV\CommunityCompression\source\csharp\BenchMarker\obj\Debug\BenchMarker.pdb

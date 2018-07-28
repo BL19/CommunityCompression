@@ -37,16 +37,16 @@ namespace CommunityComprimation.BinaryZip
                         nextQueue++;
                         runningDataHandlers++;
                         totalDataHandlers++;
-                        CCConfig.debug("Enqueued at " + queuepos);
+                        //CCConfig.debug("Enqueued at " + queuepos);
                         byte[] mbs = ToMultiByteStorage(sum);
                         while(queuepos != currentQueued) {
-                            CCConfig.debug(queuepos + " is awaiting to import data... (" + (queuepos - currentQueued) + " left)");
-                            Thread.Sleep(10);
+                            //CCConfig.debug(queuepos + " is awaiting to import data... (" + (queuepos - currentQueued) + " left)");
+                            //Thread.Sleep(10);
                         }
                         ar = extend(ar, mbs.Length + 1);
                         for (int j = 0; j < mbs.Length; j++)
                         {
-                            ar[(ar.Length - 2) - j] = mbs[j];
+                            ar[(ar.Length - 2) - j] = byte.Parse(int.Parse(mbs[j] + "") + 1 + "" );
                         }
                         ar[ar.Length - 1] = 0;
                         currentQueued++;
@@ -61,35 +61,61 @@ namespace CommunityComprimation.BinaryZip
             return ar;
         }
 
+        public byte[] DeCompress(byte[] arr) {
+            byte[] result = new byte[0];
+            byte[] buf = new byte[0];
+            for (int i = 0; i < arr.Length; i++)
+            {
+                byte b = arr[i];
+                if(b == 0) {
+                    long mbs = FromMultiByteStorage(buf);
+                    byte[] mbsres = new byte[0];
+                    while(true) {
+                        int next = FindBiggestNearBinary(mbs);
+                        mbs -= (long) Math.Pow(2, next);
+                        mbsres = extend(mbsres, 1);
+                        mbsres[mbsres.Length - 1] = (byte) next;
+                        if (next == 1)
+                            break;
+                    } 
+                    result = extend(result, mbsres.Length);
+                }else{
+                    buf = extend(buf, 1);
+                    buf[buf.Length - 1] = byte.Parse((int.Parse(b + "")-1) + "");
+                }
+            }
+            return result;
+        }
+
         public byte[] ToMultiByteStorage(long num) {
             CCConfig.debug("Converting " + num + " to MBS..");
             byte[] ar = new byte[0];
             bool[] br = new bool[0];
             long n = num;
-            while (false)
-            {
+            //while (false)
+            //{
 
-                long nb = FindBiggestNearBinary(n);
-                long b = FindBiggestBinary(n);
-                n -= b;
-                if (nb - br.Length > 0)
-                    br = extend(br, (nb) - br.Length);
+            //    long nb = FindBiggestNearBinary(n);
+            //    long b = FindBiggestBinary(n);
+            //    n -= b;
+            //    if (nb - br.Length > 0)
+            //        br = extend(br, (nb) - br.Length);
 
-                string resultby = "";
-                foreach (var by in br)
-                {
-                    resultby += " " + (by ? "1" : "0") + " ";
-                }
-                CCConfig.debug("br: " + resultby);
+            //    string resultby = "";
+            //    foreach (var by in br)
+            //    {
+            //        resultby += " " + (by ? "1" : "0") + " ";
+            //    }
+            //    CCConfig.debug("br: " + resultby);
 
-                br = BinaryAdd(br, b);
+            //    br = BinaryAdd(br, b);
 
-                if(n == 0)
-                    break;
-            }
+            //    if(n == 0)
+            //        break;
+            //}
             long nb1 = FindBiggestNearBinary(n);
             br = new bool[nb1 + 1];
-            char[] bytes = Convert.ToString(num,2).ToCharArray();
+            char[] bytes = Convert.ToString(num,2).ToCharArray(); // To binary bytes
 
             for (int i = 0; i < bytes.Length; i++)
             {
@@ -124,13 +150,16 @@ namespace CommunityComprimation.BinaryZip
                     bc1 = 0;
                 }
                 bc1++;
-                PercentageChange args = new PercentageChange();
-                args.currentiterations = i;
-                args.totaliterations = br.Length - 1;
-                args.where = "Bits to Bytes";
-                args.percent = (int)((i * 100) / br.Length - 1);
-                pargs.changes[1] = args;
-                OnPercentChange(pargs);
+                if (!CCConfig.TOTAL_PEFORMANCE)
+                {
+                    PercentageChange args = new PercentageChange();
+                    args.currentiterations = i;
+                    args.totaliterations = br.Length - 1;
+                    args.where = "Bits to Bytes";
+                    args.percent = (int)((i * 100) / br.Length - 1);
+                    pargs.changes[1] = args;
+                    OnPercentChange(pargs);
+                }
             }
             string result = "";
             foreach (var b in ar) {
@@ -138,6 +167,20 @@ namespace CommunityComprimation.BinaryZip
             }
             CCConfig.debug(num + " has been converted to MBS! (Result: [" + result + "] / " + bits + ")");
             return ar;
+        }
+
+        public long FromMultiByteStorage(byte[] arr) {
+            string binary = "";
+            foreach (var b in arr)
+            {
+                char[] bytes = Convert.ToString(int.Parse(b + ""), 2).ToCharArray(); // To binary bytes
+                for (int i = 0; i < bytes.Length; i++)
+                {
+                    char c = bytes[i];
+                    binary += c;
+                }
+            }
+            return BinaryToDec(binary);
         }
 
         private bool[] extend(bool[] br, long v)
@@ -224,16 +267,20 @@ namespace CommunityComprimation.BinaryZip
                     }
                     iterations++;
                     long percent = ((iterations * 100) / totaliterations);
-                    if (lastPercent < percent) {
-                        CCConfig.debug("Binary Adding: " + percent + "% (" + iterations + "/" + totaliterations + ")");
-                        lastPercent = (int) percent;
-                        PercentageChange args = new PercentageChange();
-                        args.percent = (int) percent;
-                        args.where = "Binary Adder";
-                        args.totaliterations = totaliterations;
-                        args.currentiterations = iterations;
-                        pargs.changes[0] = args;
-                        OnPercentChange(pargs);
+                    if (!CCConfig.TOTAL_PEFORMANCE)
+                    {
+                        if (lastPercent < percent)
+                        {
+                            CCConfig.debug("Binary Adding: " + percent + "% (" + iterations + "/" + totaliterations + ")");
+                            lastPercent = (int)percent;
+                            PercentageChange args = new PercentageChange();
+                            args.percent = (int)percent;
+                            args.where = "Binary Adder";
+                            args.totaliterations = totaliterations;
+                            args.currentiterations = iterations;
+                            pargs.changes[0] = args;
+                            OnPercentChange(pargs);
+                        }
                     }
                 }
 
@@ -241,6 +288,39 @@ namespace CommunityComprimation.BinaryZip
             returnbits = originalbits;
 
             return returnbits;
+        }
+
+        static long BinaryToDec(string input)
+        {
+            char[] array = input.ToCharArray();
+            // Reverse since 16-8-4-2-1 not 1-2-4-8-16. 
+            Array.Reverse(array);
+            /*
+             * [0] = 1
+             * [1] = 2
+             * [2] = 4
+             * etc
+             */
+            long sum = 0;
+
+            for (int i = 0; i < array.Length; i++)
+            {
+                if (array[i] == '1')
+                {
+                    // Method uses raising 2 to the power of the index. 
+                    if (i == 0)
+                    {
+                        sum += 1;
+                    }
+                    else
+                    {
+                        sum += (int)Math.Pow(2, i);
+                    }
+                }
+
+            }
+
+            return sum;
         }
 
         private void UpdatePercentage(PercentageChange args)

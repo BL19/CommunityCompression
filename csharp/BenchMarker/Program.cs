@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using CommunityComprimation;
 using CommunityComprimation.BinaryZip;
+using System.Diagnostics;
 
 namespace BenchMarker
 {
@@ -19,6 +20,11 @@ namespace BenchMarker
         static string[] cached = new string[0];
         static int currentcached = 0;
         public static Compresser c;
+        private static int enqueuedCompressors;
+        private static DateTime cstart;
+        private static int finishedCompressors;
+        private static int comp_files;
+        private static int comp_folders;
 
         static void Main(string[] args)
         {
@@ -48,6 +54,7 @@ namespace BenchMarker
                 }
             }
             c = new Compresser();
+            CCConfig.TOTAL_PEFORMANCE = true;
             //c.PercentChanged += C_PercentChanged;
             Console.WriteLine(c.FindBiggestBinary(65));
             while (true)
@@ -69,7 +76,8 @@ namespace BenchMarker
                     write("[" + result + "]");
                 } else if(input.StartsWith("c")) {
                     input = input.Remove(0, 2);
-                    if (input.StartsWith("c")) {
+                    if (input.StartsWith("c"))
+                    {
                         input = input.Remove(0, 2);
                         byte[] arr = Encoding.ASCII.GetBytes(input);
                         byte[] comp = c.Compress(arr);
@@ -79,32 +87,53 @@ namespace BenchMarker
                             result += " " + b + " ";
                         }
                         write(result + "  /  " + Convert.ToBase64String(comp) + "\n" + (((comp.Length * 100) / arr.Length) - 100) + "% (" + comp.Length + "/" + arr.Length + ")");
-                    } else if (input.StartsWith("f")) {
+                    }
+                    else if (input.StartsWith("f"))
+                    {
                         input = input.Remove(0, 2);
-                        StreamReader r = new StreamReader(input);
-                        byte[] arr = Encoding.ASCII.GetBytes(r.ReadToEnd());
-                        r.Close();
-                        Console.WriteLine("Press enter to start compression.. (size: " + arr.Length + ")");
-                        Console.ReadLine();
-                        DateTime start = DateTime.Now;
-                        Thread t = new Thread(update);
-                        //t.Start();
+                        string[] cargs = input.Split(' ');
+                        if (Directory.Exists(cargs[0]))
+                        {
+                            enqueuedCompressors = 0;
+                            finishedCompressors = 0;
+                            cstart = DateTime.Now;
+                            CompressFolder(cargs[0], (cargs.Length > 1 ? cargs[1] : "./" + cargs[0] + "-zipped"));
+                        }
+                        else
+                        {
+                            StreamReader r = new StreamReader(input);
+                            byte[] arr = Encoding.ASCII.GetBytes(r.ReadToEnd());
+                            r.Close();
+                            Console.WriteLine("Press enter to start compression.. (size: " + arr.Length + ")");
+                            Console.ReadLine();
+                            cstart = DateTime.Now;
+                            compress(arr, input, ".", true);
+                        }
+
+
+                    }
+                    else if (input.StartsWith("cd")){
+                        input = input.Remove(0, 3);
+
+                        byte[] arr = Encoding.ASCII.GetBytes(input);
                         byte[] comp = c.Compress(arr);
-                        //t.Suspend();
                         string result = "";
                         foreach (var b in comp)
                         {
                             result += " " + b + " ";
                         }
                         write(result + "  /  " + Convert.ToBase64String(comp) + "\n" + (((comp.Length * 100) / arr.Length) - 100) + "% (" + comp.Length + "/" + arr.Length + ")");
-                        StreamWriter w = new StreamWriter(input + ".bz");
-                        w.WriteLine(Convert.ToBase64String(comp));
-                        w.Close();
-                        DateTime end = DateTime.Now;
-                        TimeSpan diff = end.Subtract(start);
-                        
-                        write("Done! (" + diff.Seconds + " seconds " + (diff.Milliseconds % 10) + " ms) \nSpeed: " + (arr.Length / diff.Seconds) + " bytes/sec");
-                    } else {
+                        byte[] decomp = c.DeCompress(comp);
+                        string dres = "";
+                        foreach (var b in comp)
+                        {
+                            dres += " " + b + " ";
+                        }
+                        write(dres);
+                        write(Encoding.ASCII.GetString(decomp)); 
+                    }
+                    else
+                    {
                         string[] bytes = input.Split(' ');
                         byte[] arr = new byte[bytes.Length];
                         for (int i = 0; i < bytes.Length; i++)
@@ -122,6 +151,69 @@ namespace BenchMarker
                 }
             }
 
+        }
+
+        private static void CompressFolder(string input, string basedir)
+        {
+            Directory.CreateDirectory(basedir);
+            foreach (var dir in Directory.GetDirectories(input))
+            {
+                comp_folders++;
+                string[] locarr = dir.Split("\\".ToCharArray()[0]);
+                string loc = locarr[locarr.Length-1];
+                CompressFolder(input + "/" + loc, basedir + "/" + loc);
+            }
+
+            foreach (var file in Directory.GetFiles(input))
+            {
+                try
+                {
+                    string[] locarr = file.Split("\\".ToCharArray()[0]);
+                    string loc = locarr[locarr.Length - 1];
+                    StreamReader r = new StreamReader(input + "/" + loc);
+                    byte[] arr = Encoding.ASCII.GetBytes(r.ReadToEnd());
+                    r.Close();
+                    comp_files++;
+                    compress(arr, loc, basedir, false);
+                } catch (FileNotFoundException e) {
+                    
+                }
+            }
+        }
+
+        public static void compress(byte[] arr, string fname, string location, bool printoutput) {
+            Compresser cc = new Compresser();
+            int current = enqueuedCompressors;
+            enqueuedCompressors++;
+            Task.Run(() =>
+            {
+                write("Compressing " + location + "/" + fname + " to " + location + "/" + fname + ".bz...");
+                DateTime start = DateTime.Now;
+                byte[] comp = c.Compress(arr);
+                if (printoutput)
+                {
+                    string result = "";
+                    foreach (var b in comp)
+                    {
+                        result += " " + b + " ";
+                    }
+                    write(result + "  /  " + Convert.ToBase64String(comp) + "\n" + (((comp.Length * 100) / arr.Length) - 100) + "% (" + comp.Length + "/" + arr.Length + ")");
+                }
+                StreamWriter w = new StreamWriter(location + "/" + fname + ".bz");
+                w.WriteLine(Convert.ToBase64String(comp));
+                w.Close();
+                DateTime end = DateTime.Now;
+                TimeSpan diff = end.Subtract(start);
+
+                finishedCompressors++;
+                write("Done! (" + diff.Seconds + " seconds " + (diff.Milliseconds) + " ms) \nSpeed: " + (diff.Seconds > 1 ?(arr.Length / diff.Seconds) : arr.Length) + " bytes/sec   Rate: " + (arr.Length > 1 ? (((comp.Length * 100) / arr.Length) - 100) : 0) + "%  File: " + fname + "  Progress: " + ((finishedCompressors * 100)/enqueuedCompressors) + "% (" + finishedCompressors + "/" + enqueuedCompressors + ")");
+                Debug.WriteLine(finishedCompressors + "/" + enqueuedCompressors + "  " + fname);
+                if(enqueuedCompressors == finishedCompressors) {
+                    DateTime cend = DateTime.Now;
+                    TimeSpan cdiff = cend.Subtract(cstart);
+                    Console.WriteLine("\n\nDONE! (" + comp_files + " files & " + comp_folders + " folders) \nTime: " + cdiff.Hours + ":" + cdiff.Minutes + ":" + diff.Seconds + "." + cdiff.Milliseconds);
+                }
+            });
         }
 
         public static void update() {
