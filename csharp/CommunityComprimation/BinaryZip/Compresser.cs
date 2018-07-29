@@ -69,16 +69,21 @@ namespace CommunityComprimation.BinaryZip
                 byte b = arr[i];
                 if(b == 0) {
                     long mbs = FromMultiByteStorage(buf);
+                    buf = new byte[0];
                     byte[] mbsres = new byte[0];
                     while(true) {
                         int next = FindBiggestNearBinary(mbs);
                         mbs -= (long) Math.Pow(2, next);
                         mbsres = extend(mbsres, 1);
                         mbsres[mbsres.Length - 1] = (byte) next;
-                        if (next == 1)
+                        if (next == 1 || next == 0)
                             break;
                     } 
                     result = extend(result, mbsres.Length);
+                    for (int j = 0; j < mbsres.Length; j++)
+                    {
+                        result[(result.Length - mbsres.Length) + j] = mbsres[j];
+                    }
                 }else{
                     buf = extend(buf, 1);
                     buf[buf.Length - 1] = byte.Parse((int.Parse(b + "")-1) + "");
