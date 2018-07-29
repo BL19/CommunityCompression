@@ -74,9 +74,9 @@ namespace BenchMarker
 
                     write("MBS Succeded!");
                     write("[" + result + "]");
-                } else if(input.StartsWith("c")) {
+                } else if(input.StartsWith("c ")) {
                     input = input.Remove(0, 2);
-                    if (input.StartsWith("c"))
+                    if (input.StartsWith("c "))
                     {
                         input = input.Remove(0, 2);
                         byte[] arr = Encoding.ASCII.GetBytes(input);
