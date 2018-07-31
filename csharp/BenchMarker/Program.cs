@@ -65,15 +65,33 @@ namespace BenchMarker
                 if (input.StartsWith("mbs"))
                 {
                     input = input.Remove(0, 4);
-                    byte[] mbs = c.ToMultiByteStorage(long.Parse(input));
-                    string result = "";
-                    foreach (var b in mbs)
+                    if (input.StartsWith("c "))
                     {
-                        result += " " + b + " ";
-                    }
+                        byte[] mbs = c.ToMultiByteStorage(long.Parse(input));
+                        string result = "";
+                        foreach (var b in mbs)
+                        {
+                            result += " " + b + " ";
+                        }
 
-                    write("MBS Succeded!");
-                    write("[" + result + "]");
+                        write("MBS Succeded!");
+                        write("[" + result + "]");
+                    } else if(input.StartsWith("cd")) {
+                        input = input.Remove(0, 3);
+                        byte[] mbs = c.ToMultiByteStorage(long.Parse(input));
+                        string result = "";
+                        foreach (var b in mbs)
+                        {
+                            result += " " + b + " ";
+                        }
+
+                        write("MBS 1 Succeded!");
+                        write("[" + result + "]");
+
+                        long bmbs = c.FromMultiByteStorage(mbs);
+                        write("MBS 2 Succeded!");
+                        write(bmbs + "");
+                    }
                 } else if(input.StartsWith("c ")) {
                     input = input.Remove(0, 2);
                     if (input.StartsWith("c "))
@@ -116,6 +134,12 @@ namespace BenchMarker
                         input = input.Remove(0, 3);
 
                         byte[] arr = Encoding.ASCII.GetBytes(input);
+                        string aresult = "";
+                        foreach (var b in arr)
+                        {
+                            aresult += " " + b + " ";
+                        }
+                        write(aresult);
                         byte[] comp = c.Compress(arr);
                         string result = "";
                         foreach (var b in comp)
@@ -125,7 +149,7 @@ namespace BenchMarker
                         write(result + "  /  " + Convert.ToBase64String(comp) + "\n" + (((comp.Length * 100) / arr.Length) - 100) + "% (" + comp.Length + "/" + arr.Length + ")");
                         byte[] decomp = c.DeCompress(comp);
                         string dres = "";
-                        foreach (var b in comp)
+                        foreach (var b in decomp)
                         {
                             dres += " " + b + " ";
                         }

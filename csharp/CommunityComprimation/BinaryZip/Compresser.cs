@@ -19,13 +19,20 @@ namespace CommunityComprimation.BinaryZip
         public byte[] Compress(byte[] bytes) {
             byte[] ar = new byte[0];
             byte currentMax = 0;
-            long sum = 0;
+            long psum = 0;
             int currentQueued = 0;
             int nextQueue = 0;
+            bytes = extend(bytes, 1);
+            bytes[bytes.Length - 1] = 0;
             bytesToProcess = bytes.Length;
+            int pmin = 0;
             for (int i = 0; i < bytes.Length; i++){
                 byte b = bytes[i];
-                sum += b;
+
+                if(pmin == 0) {
+                    pmin = b;
+                }
+
                 if(b > currentMax) {
                     currentMax = b;
                 } else {
@@ -38,15 +45,21 @@ namespace CommunityComprimation.BinaryZip
                         runningDataHandlers++;
                         totalDataHandlers++;
                         //CCConfig.debug("Enqueued at " + queuepos);
+                        long sum = psum;
+                        int min = pmin;
+                        pmin = 0;
+                        psum = 0;
                         byte[] mbs = ToMultiByteStorage(sum);
                         while(queuepos != currentQueued) {
                             //CCConfig.debug(queuepos + " is awaiting to import data... (" + (queuepos - currentQueued) + " left)");
                             //Thread.Sleep(10);
                         }
-                        ar = extend(ar, mbs.Length + 1);
+                        int pkgstart = ar.Length;
+                        ar = extend(ar, mbs.Length + 2);
+                        ar[pkgstart] = byte.Parse((min) + "");
                         for (int j = 0; j < mbs.Length; j++)
                         {
-                            ar[(ar.Length - 2) - j] = byte.Parse(int.Parse(mbs[j] + "") + 1 + "" );
+                            ar[(ar.Length - 1) - j] = mbs[j];
                         }
                         ar[ar.Length - 1] = 0;
                         currentQueued++;
@@ -54,10 +67,11 @@ namespace CommunityComprimation.BinaryZip
                     });
                     //Thread.Sleep();
                 }
+                psum += (long) Math.Pow(2, int.Parse(b + "") - (pmin - 1));
                 processedBytes++;
             }
-
-            while(nextQueue != currentQueued) { }
+            Thread.Sleep(20);
+            while (nextQueue != currentQueued) { }
             return ar;
         }
 
@@ -68,6 +82,13 @@ namespace CommunityComprimation.BinaryZip
             {
                 byte b = arr[i];
                 if(b == 0) {
+                    int min = buf[0];
+                    byte[] bbuf = buf;
+                    buf = new byte[buf.Length - 1];
+                    for (int j = 1; j < bbuf.Length; j++)
+                    {
+                        buf[j - 1] = byte.Parse(int.Parse(bbuf[j] + "") + min + "");
+                    }
                     long mbs = FromMultiByteStorage(buf);
                     buf = new byte[0];
                     byte[] mbsres = new byte[0];
@@ -118,9 +139,9 @@ namespace CommunityComprimation.BinaryZip
             //    if(n == 0)
             //        break;
             //}
-            long nb1 = FindBiggestNearBinary(n);
-            br = new bool[nb1 + 1];
             char[] bytes = Convert.ToString(num,2).ToCharArray(); // To binary bytes
+            br = new bool[bytes.Length];
+            string bits = "";
 
             for (int i = 0; i < bytes.Length; i++)
             {
@@ -130,27 +151,33 @@ namespace CommunityComprimation.BinaryZip
                 } else {
                     br[i] = false;
                 }
+                bits += c;
             }
+            CCConfig.debug(bits);
 
             //Get the number of bytes needed for the number to fit
             double bytesNeeded = br.Length / 8;
             int bni = (int)bytesNeeded;
-            if (bytesNeeded - bni > 0)
+            if (br.Length % 8 != 0)
+            {
                 bni += 1;
+                bytesNeeded += 1;
+            }
 
-            ar = new byte[bni + 1];
+            ar = new byte[bni + (bytesNeeded - bni != 0 ? 1:0)];
 
             int bytecount = 0;
             int bc1 = 0;
-            string bits = "";
-            for (int i = 0; i < br.Length; i++)
+            string bbuf = "";
+            for (int i = 0; i < bytes.Length; i++)
             {
-                int plc = br.Length - i;
-                int bnum = (br[i] ? 1 : 0);
-                bits += bnum + "";
-                ar[bytecount] += (byte)(Math.Pow(2, (plc % 8)-1) * bnum);
-                CCConfig.debug("Byte: " + Math.Pow(2, (plc % 8)-1) + ", " + ((plc % 8)-1) + ", " + bnum);
-                if (bc1 == 8) {
+                bbuf += bytes[i] + "";
+                if (bc1 == 7 || i == bytes.Length - 1) {
+                    long b = BinaryToDec(bbuf);
+                    if (ar.Length == bytecount)
+                        ar = extend(ar, 1);
+                    ar[bytecount] = byte.Parse(b + "");
+                    bbuf = "";
                     bytecount++;
                     bc1 = 0;
                 }
